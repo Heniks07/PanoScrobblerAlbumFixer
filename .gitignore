@@ -3,3 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+/PanoScrobblerAlbumFixer/Unscrobbler/venv/
+/PanoScrobblerAlbumFixer/Unscrobbler/output/
+/PanoScrobblerAlbumFixer/Unscrobbler/.idea/
