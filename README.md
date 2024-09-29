@@ -1,6 +1,6 @@
 # PanoScrobbler Album Fixer
 
-PanoScrobbler Album Fixer is a command line application written in C# set out to fix [faulty](https://www.reddit.com/r/lastfm/comments/1cwaeoe/comment/lpbp9jq/) scrobbles produced by PanoScrobbler
+PanoScrobbler Album Fixer is a command line application written in C# set out to fix [faulty](https://www.reddit.com/r/lastfm/comments/1cwaeoe/how_to_stop_pano_scrobbler_from_assuming_albums/) scrobbles produced by PanoScrobbler
 
 ## Requirements
 - [Python3](https://www.python.org/downloads/)
