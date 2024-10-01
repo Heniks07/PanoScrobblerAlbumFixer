@@ -15,7 +15,7 @@ namespace PanoScrobblerAlbumFixer.API
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
-    public partial class TrackInfo
+    public partial class TrackInfoJson
     {
         [JsonProperty("track", NullValueHandling = NullValueHandling.Ignore)]
         public InfoTrack Track { get; set; }
@@ -122,14 +122,14 @@ namespace PanoScrobblerAlbumFixer.API
         public string Content { get; set; }
     }
 
-    public partial class TrackInfo
+    public partial class TrackInfoJson
     {
-        public static TrackInfo FromJson(string json) => JsonConvert.DeserializeObject<TrackInfo>(json, PanoScrobblerAlbumFixer.API.Converter.Settings);
+        public static TrackInfoJson FromJson(string json) => JsonConvert.DeserializeObject<TrackInfoJson>(json, PanoScrobblerAlbumFixer.API.Converter.Settings);
     }
 
     public static class InfoSerialize
     {
-        public static string ToJson(this TrackInfo self) => JsonConvert.SerializeObject(self, PanoScrobblerAlbumFixer.API.Converter.Settings);
+        public static string ToJson(this TrackInfoJson self) => JsonConvert.SerializeObject(self, PanoScrobblerAlbumFixer.API.Converter.Settings);
     }
 
     internal static class InfoConverter

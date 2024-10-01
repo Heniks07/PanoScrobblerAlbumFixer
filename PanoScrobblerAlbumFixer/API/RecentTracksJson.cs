@@ -54,6 +54,8 @@ namespace PanoScrobblerAlbumFixer.API
 
     public partial class Track
     {
+        public short? Page { get; set; }
+        
         [JsonProperty("artist", NullValueHandling = NullValueHandling.Ignore)]
         public Album Artist { get; set; }
 

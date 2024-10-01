@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace PanoScrobblerAlbumFixer.API;
@@ -21,7 +19,7 @@ public class Authentication
     public void GetToken()
     {
         var signatureBase = $"api_key{_apiKey}method{Method}{_secret}";
-        var apiSig = GetMd5Hash(signatureBase);
+        var apiSig = Cryptography.GetMd5Hash(signatureBase);
         var url = $"https://ws.audioscrobbler.com/2.0/?method={Method}&api_key={_apiKey}&api_sig={apiSig}&format=json";
 
         using var client = new HttpClient();
@@ -43,7 +41,7 @@ public class Authentication
 
         // Construct the API signature
         var signatureBase = $"api_key{_apiKey}method{method}token{Token}{_secret}";
-        var apiSig = GetMd5Hash(signatureBase);
+        var apiSig = Cryptography.GetMd5Hash(signatureBase);
 
         // Call auth.getSession API
         var url =
@@ -76,19 +74,5 @@ public class Authentication
         }
 
         return user;
-    }
-
-    private string GetMd5Hash(string input)
-    {
-        using (var md5 = MD5.Create())
-        {
-            var inputBytes = Encoding.UTF8.GetBytes(input);
-            var hashBytes = md5.ComputeHash(inputBytes);
-
-            var sb = new StringBuilder();
-            for (var i = 0; i < hashBytes.Length; i++) sb.Append(hashBytes[i].ToString("x2"));
-
-            return sb.ToString();
-        }
     }
 }
