@@ -71,18 +71,27 @@ public class BackupHandler(string backupPath, string BackupFile)
                 x.UnixTimestamp == track.Date.Uts && x.Artist == track.Artist.Text);
 
         if (updatedTrack == null)
+        {
             return;
+        }
 
         backupJson?.BackupTracks.Remove(updatedTrack);
         updatedTrack.Deleted = deleted || updatedTrack.Deleted;
         updatedTrack.Scrobbled = scrobbled || updatedTrack.Scrobbled;
 
         if (!updatedTrack.Deleted || !updatedTrack.Scrobbled)
+        {
             backupJson?.BackupTracks.Add(updatedTrack);
+        }
+
         if (deletedIndex > 0)
+        {
             backupJson!.DeletionCount = deletedIndex;
+        }
 
         if (backupJson != null)
+        {
             WriteBackup(backupJson);
+        }
     }
 }

@@ -43,7 +43,9 @@ public class CookieRetriever
             _driver.Navigate().GoToUrl($"https://www.last.fm/user/{userName}/library");
             RetrieveCookies();
             if (!closeBrowser)
+            {
                 _driver.Navigate().Refresh();
+            }
         }
         else
         {
@@ -64,6 +66,7 @@ public class CookieRetriever
         }
 
         if (!closeBrowser) return;
+
         _driver.Close();
         _driver.Dispose();
     }
@@ -87,6 +90,7 @@ public class CookieRetriever
         var cookies =
             JsonConvert.DeserializeObject<List<ParsableCookies>>(File.ReadAllText(CookiePath));
         if (cookies == null) return;
+
         foreach (var cookie in cookies) _driver.Manage().Cookies.AddCookie(cookie.ToCookie());
 
         _config.User.SessionId = cookies.FirstOrDefault(x => x.cookieName == "sessionid")?.cookieValue;

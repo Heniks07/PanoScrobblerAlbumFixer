@@ -60,7 +60,7 @@ public static partial class Program
             new Scrobble(_config!.ApiKey, _config.ApiSecret).ScrobbleMultipleTracks(
                 selectedTracks[..scrobbleCount],
                 _config.User);
-            //Console.WriteLine(result);
+
             foreach (var selectedTrack in selectedTracks[..scrobbleCount])
             {
                 //-1 is used to indicate that the property should not be changed
@@ -83,7 +83,10 @@ public static partial class Program
             .ShowDefaultValue(true)
         );
         if (minPage < 1)
+        {
             minPage = 1;
+        }
+
         var internalMinPage = minPage;
 
 
@@ -131,6 +134,7 @@ public static partial class Program
     {
         CheckOlderThan2Weeks(selectedTracks);
         if (selectedTracks.Count == 0) return;
+
         AnsiConsole.Progress()
             .AutoClear(true)
             .Columns(
@@ -148,6 +152,7 @@ public static partial class Program
 
 
                 if (_config?.User == null) return;
+
                 var unscrobble = new Unscrobble(_config.User);
 
                 foreach (var track in selectedTracks)
@@ -169,21 +174,15 @@ public static partial class Program
             AnsiConsole.Prompt(new ConfirmationPrompt("Do you want to scrobble them to an earlier date?").ShowChoices()
                 .ShowDefaultValue());
         if (scrobbleOlder)
+        {
             return;
+        }
+
         selectedTracks.RemoveAll(x => x.Date.Uts < DateTimeOffset.Now.AddDays(-14).ToUnixTimeSeconds());
         AnsiConsole.MarkupLine(
             "[green]Older tracks have been removed![/] Will only delete tracks from the last 2 weeks");
     }
 
-    // private static short GetSmartPage(short? trackPage, short iterator)
-    // {
-    //     //When a track is deleted the page number of the following tracks might be decreased by one per 50 tracks deleted 
-    //     //It is important to use Math.Ceiling to round up, because as soon as 1,51,101,etc. tracks are deleted the page number will decrease by one for the first track on the next page
-    //     var result = (short)(trackPage! - Math.Ceiling(iterator / 50d));
-    //
-    //     //The page number can't be lower than 1
-    //     return result < 1 ? (short)1 : result;
-    // }
 
     private static List<Track> SelectTracks(List<Track> wrongTracks)
     {
@@ -209,8 +208,12 @@ public static partial class Program
                 .ShowDefaultValue(true)
         );
         if (preselect)
+        {
             foreach (var wrongTrack in wrongTracks)
+            {
                 multiSelect.Select(wrongTrack);
+            }
+        }
 
         var selectedTracks = AnsiConsole.Prompt(multiSelect);
         return selectedTracks;
@@ -233,9 +236,11 @@ public static partial class Program
             AnsiConsole.MarkupLine("[green]Welcome [bold]{0}[/]![/]", user.Name);
 
             if (_config is null)
+            {
                 throw new ArgumentNullException(
                     new StringBuilder().Append("Config file is empty or invalid!").ToString(),
                     "Delete the file and restart the application");
+            }
 
             _config.User = user;
 
@@ -248,7 +253,9 @@ public static partial class Program
         {
             AnsiConsole.MarkupLine("[green]Welcome [bold]{0}[/]![/]", _config.User.Name);
             if (string.IsNullOrEmpty(_config.User.Password))
+            {
                 EnterPassword();
+            }
         }
 
         if (!string.IsNullOrEmpty(_config.User.CsrfToken) && !string.IsNullOrEmpty(_config.User.SessionId)) return;
@@ -295,10 +302,6 @@ public static partial class Program
     {
         var pass = AnsiConsole.Prompt(new TextPrompt<string>("Please Enter your password for Last.fm:").Secret());
 
-        //Console.Write(
-        //    "Password entered. Do you want to save it? It would be stored as cleartext in your config file." +
-        //    " If you don't want to store it you have to enter it everytime you start the application (y/N): ");
-
         var savePass = AnsiConsole.Prompt(new ConfirmationPrompt(
                 "Do you want to save your password? [red]Warning: Your password would be stored as cleartext in the config file[/]")
             .ShowChoices()
@@ -308,6 +311,7 @@ public static partial class Program
         AnsiConsole.MarkupLine(savePass ? "[green]Password saved![/]" : "[red]Password not saved![/]");
 
         if (_config == null) return false;
+
         _config.User.Password = pass;
         return savePass;
     }

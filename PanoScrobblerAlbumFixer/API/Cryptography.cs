@@ -13,7 +13,9 @@ public static class Cryptography
 
         var sb = new StringBuilder();
         foreach (var t in hashBytes)
+        {
             sb.Append(t.ToString("x2"));
+        }
 
         return sb.ToString();
     }

@@ -60,14 +60,21 @@ public static partial class Program
     {
         var yaml = new SerializerBuilder().Build();
         if (!savePassword)
+        {
             if (_config != null)
+            {
                 _config.User.Password = null;
+            }
+        }
+
         if (!saveCookie)
+        {
             if (_config != null)
             {
                 _config.User.SessionId = null;
                 _config.User.CsrfToken = null;
             }
+        }
 
         var yamlString = yaml.Serialize(_config);
 

@@ -8,13 +8,16 @@ public class TrackChecker(string apiKey, string user)
     public RecentTracks GetRecentTracks(short page = 1)
     {
         var url =
-            $"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={user}&api_key={apiKey}&page={page}&format=json";
+            $"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={user}&api_key={apiKey}&page={page}&format=json";
 
         using var client = new HttpClient();
         var response = client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
         var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         if (result.Contains("\"error\":"))
+        {
             throw new Exception("Error while fetching recent tracks\n" + result);
+        }
+
         var recentTracks = RecentTracksJson.FromJson(result);
         recentTracks.RecentTracks.Track.ForEach(track => track.Page = page);
         return recentTracks.RecentTracks;
@@ -34,7 +37,9 @@ public class TrackChecker(string apiKey, string user)
                 task1.MaxValue(tracks.Count);
 
                 while (!ctx.IsFinished)
+                {
                     CheckTracks(tracks, task1, wrongTracks);
+                }
             });
 
 
@@ -48,7 +53,7 @@ public class TrackChecker(string apiKey, string user)
             try
             {
                 var url =
-                    $"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={apiKey}&artist={track.Artist.Text}&track={track.Name}&format=json";
+                    $"https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={apiKey}&artist={track.Artist.Text}&track={track.Name}&format=json";
                 using var client = new HttpClient();
                 var response = client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
                 var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -57,9 +62,14 @@ public class TrackChecker(string apiKey, string user)
                 task1.Increment(1);
 
                 if (NameChecks(trackinfo, track))
+                {
                     continue;
+                }
+
                 if (AdvancedChecks(trackinfo, track))
+                {
                     continue;
+                }
 
                 track.OldAlbum = track.Album.Text;
 
@@ -101,16 +111,23 @@ public class TrackChecker(string apiKey, string user)
     private bool NameChecks(InfoTrack trackinfo, Track track)
     {
         //Check if the track isn't supposed to have an album
-        if (string.IsNullOrEmpty(trackinfo?.Album?.Title) && string.IsNullOrEmpty(track?.Album?.Text) &&
+        if (string.IsNullOrEmpty(trackinfo?.Album?.Title) &&
+            string.IsNullOrEmpty(track?.Album?.Text) &&
             string.IsNullOrEmpty(track?.Album?.Title))
+        {
             return true;
+        }
 
         if (string.IsNullOrEmpty(trackinfo?.Album?.Title))
+        {
             return false;
+        }
 
         //Check if the track has no album
         if (CheckGivenTrack(track))
+        {
             return true;
+        }
 
         //Check if the album title of the track matches the album text of the scrobbled track
         //Ignores all whitespaces
@@ -132,7 +149,10 @@ public class TrackChecker(string apiKey, string user)
     {
         //Check if the track has no album
         if (track?.Album == null)
+        {
             return true;
+        }
+
         //Check if the album has no title or text
         return string.IsNullOrEmpty(track?.Album.Text) && string.IsNullOrEmpty(track?.Album.Title);
     }

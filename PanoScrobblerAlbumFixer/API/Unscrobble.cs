@@ -28,6 +28,8 @@ public class Unscrobble(User user)
         var response = client.PostAsync(url, formData).ConfigureAwait(false).GetAwaiter().GetResult();
         var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         if (result.Contains("error"))
+        {
             Console.WriteLine("Error while unscrobbling track\n" + result);
+        }
     }
 }

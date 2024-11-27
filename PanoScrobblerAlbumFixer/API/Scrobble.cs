@@ -6,7 +6,7 @@ namespace PanoScrobblerAlbumFixer.API;
 public class Scrobble(string apiKey, string secret)
 {
     private const string Method = "track.scrobble";
-    private const string ApiUrl = "http://ws.audioscrobbler.com/2.0/";
+    private const string ApiUrl = "https://ws.audioscrobbler.com/2.0/";
 
     public string ScrobbleSingleTrack(Track track, User user)
     {
@@ -49,7 +49,10 @@ public class Scrobble(string apiKey, string secret)
         for (var i = 0; i < tracks.Count; i++)
         {
             if (tracks[i].Album != null && !string.IsNullOrEmpty(tracks[i].Album.Title))
+            {
                 parameters.Add($"album[{i}]", tracks[i].Album.Title);
+            }
+
             parameters.Add($"artist[{i}]", tracks[i].Artist.Text);
             parameters.Add($"track[{i}]", tracks[i].Name);
             parameters.Add($"timestamp[{i}]",
