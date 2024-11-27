@@ -6,6 +6,8 @@
 //
 //    var recentTracks = RecentTracks.FromJson(jsonString);
 
+using Microsoft.Extensions.Primitives;
+
 namespace PanoScrobblerAlbumFixer.API
 {
     using System;
@@ -54,6 +56,9 @@ namespace PanoScrobblerAlbumFixer.API
 
     public partial class Track
     {
+        public string OldArtist { get; set; }
+        public string OldAlbum { get; set; }
+        public string OldName { get; set; }
         public short? Page { get; set; }
         
         [JsonProperty("artist", NullValueHandling = NullValueHandling.Ignore)]
@@ -94,10 +99,16 @@ namespace PanoScrobblerAlbumFixer.API
                 sb.Append(Name);
                 sb.Append(" - ");
             }
+            if(OldAlbum != null)
+            {
+                sb.Append("***");
+                sb.Append(OldAlbum);
+                sb.Append("***");
+                sb.Append("-->");
+            }
             if (Album != null && Album.Text != null)
             {
                 sb.Append(Album.Text);
-                sb.Append(" - ");
             }
             return sb.ToString();
         }
