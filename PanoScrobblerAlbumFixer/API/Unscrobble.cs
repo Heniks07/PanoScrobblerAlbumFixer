@@ -9,7 +9,7 @@ public class Unscrobble(User user)
         client.DefaultRequestHeaders.Add("Cookie",
             $"sessionid={user.SessionId};" +
             $"csrftoken={user.CsrfToken};");
-        client.DefaultRequestHeaders.Add("Referer", "https://www.last.fm/user/henikx");
+        client.DefaultRequestHeaders.Add("Referer", $"https://www.last.fm/user/{user.Name}");
         client.DefaultRequestHeaders.Add("User-Agent",
             "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0");
 
