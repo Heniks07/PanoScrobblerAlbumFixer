@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Spectre.Console;
 using YamlDotNet.Serialization;
 
 namespace PanoScrobblerAlbumFixer;
@@ -10,19 +11,23 @@ public static partial class Program
         if (!Directory.Exists(ConfigPath) || !File.Exists(ConfigPath + "/config.yaml"))
         {
             Directory.CreateDirectory(ConfigPath);
-            Console.WriteLine("Config file not found, creating one in {0}", ConfigPath);
+
+            AnsiConsole.MarkupLine("[bold red]Config file not found![/] Creating one in {0}", ConfigPath);
 
             // Create the config file
 
             // Ask for the API key
-            Console.Write("Please enter your Last.fm API key or press Enter to use the one provided by me: ");
-            var input = Console.ReadLine();
+
+            var input = AnsiConsole.Prompt(
+                new TextPrompt<string>(
+                    "Please enter your Last.fm API key or press Enter to use the one provided by me:").AllowEmpty());
             var apiKey = string.IsNullOrEmpty(input)
                 ? "a08dabd1bd340cafc153d1ade9bfa4b7"
                 : input;
             // Ask for the API secret
-            Console.Write("Please enter your Last.fm API secret or press Enter to use the one provided by me: ");
-            input = Console.ReadLine();
+            input = AnsiConsole.Prompt(
+                new TextPrompt<string>(
+                    "Please enter your Last.fm API secret or press Enter to use the one provided by me:").AllowEmpty());
             var apiSecret = string.IsNullOrEmpty(input)
                 ? "4af271b8175b7f5e78dd462ca25bab91"
                 : input;
@@ -39,7 +44,7 @@ public static partial class Program
         }
         else
         {
-            Console.WriteLine("Config file found in {0}", ConfigPath);
+            AnsiConsole.MarkupLine("[bold green]Config file found![/]");
             ReadConfig();
         }
     }
@@ -51,10 +56,21 @@ public static partial class Program
         _config = config;
     }
 
-    private static void WriteConfig()
+    private static void WriteConfig(bool savePassword = true, bool saveCookie = true)
     {
         var yaml = new SerializerBuilder().Build();
+        if (!savePassword)
+            if (_config != null)
+                _config.User.Password = null;
+        if (!saveCookie)
+            if (_config != null)
+            {
+                _config.User.SessionId = null;
+                _config.User.CsrfToken = null;
+            }
+
         var yamlString = yaml.Serialize(_config);
+
         File.WriteAllText(ConfigPath + "/config.yaml", yamlString);
     }
 

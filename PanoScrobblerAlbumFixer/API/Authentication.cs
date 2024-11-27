@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Spectre.Console;
 
 namespace PanoScrobblerAlbumFixer.API;
 
@@ -61,15 +62,14 @@ public class Authentication
             : null;
         if (user?.Name == null)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Error: No username found: " + result);
-            Console.ResetColor();
+            AnsiConsole.MarkupLine("[bold red]Error: No username found: {0}[/]", result);
 
-            Console.WriteLine(
-                "Enter your last.fm username (note that there might have gone something wrong in the authentication Process. If you want to be sure rerun the application. If the problem keeps persisting create an issue on https://github.com/Heniks07/PanoScrobblerAlbumFixer/issues): ");
+
             user = new User
             {
-                Name = Console.ReadLine() ?? throw new ArgumentNullException("No username entered")
+                Name = AnsiConsole.Prompt(new TextPrompt<string>(
+                           "Enter your last.fm username (note that there might have gone something wrong in the authentication Process. If you want to be sure rerun the application. If the problem keeps persisting create an issue on https://github.com/Heniks07/PanoScrobblerAlbumFixer/issues):")) ??
+                       throw new ArgumentNullException("No username entered")
             };
         }
 

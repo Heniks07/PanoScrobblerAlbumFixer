@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Newtonsoft.Json;
 using PanoScrobblerAlbumFixer.API;
+using Spectre.Console;
 
 namespace PanoScrobblerAlbumFixer;
 
@@ -27,7 +28,7 @@ public class BackupHandler(string backupPath, string BackupFile)
         Directory.CreateDirectory(backupPath);
 
         File.WriteAllText(backupPath + BackupFile, jsonString);
-        Console.WriteLine($"Backup written to {backupPath}{BackupFile}");
+        AnsiConsole.MarkupLine("[bold green]Backup written to {0}[/]", backupPath + BackupFile);
     }
 
     private void WriteBackup(BackupJson backupJson)

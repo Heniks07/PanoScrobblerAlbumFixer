@@ -16,4 +16,10 @@ public class User
 
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Password { get; set; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public string? SessionId { get; set; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public string? CsrfToken { get; set; }
 }
