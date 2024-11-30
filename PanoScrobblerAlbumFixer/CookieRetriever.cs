@@ -34,7 +34,8 @@ public class CookieRetriever
 
     private const string CookiePath = "cookies.json";
 
-    public void Login(bool closeBrowser = false)
+
+    public void Login(bool closeBrowser)
     {
         var userName = _config.User.Name;
         var password = _config.User.Password;
