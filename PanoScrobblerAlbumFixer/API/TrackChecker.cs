@@ -5,7 +5,7 @@ namespace PanoScrobblerAlbumFixer.API;
 
 public class TrackChecker(string apiKey, string user)
 {
-    public RecentTracks GetRecentTracks(short page = 1)
+    public RecentTracks GetRecentTracks(short page)
     {
         var url =
             $"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={user}&api_key={apiKey}&page={page}&format=json";
