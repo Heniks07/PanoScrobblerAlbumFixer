@@ -29,7 +29,7 @@ public class Unscrobble(Configuration config)
 
         var response = client.PostAsync(url, formData).ConfigureAwait(false).GetAwaiter().GetResult();
         var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        if (!result.Contains("error")) return;
+        if (!result.Contains("error")) { return; }
         File.WriteAllText("error.html", result);
         throw new HttpRequestException("Error occurred, check error.html in your working directory");
     }
