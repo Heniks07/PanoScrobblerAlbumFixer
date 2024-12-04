@@ -1,48 +1,19 @@
 using System.Text;
+using Spectre.Console;
 using static System.DateTimeOffset;
 
 namespace PanoScrobblerAlbumFixer.API;
 
-public class Scrobble(string apiKey, string secret)
+public class Scrobble(Configuration config)
 {
-    private const string Method = "track.scrobble";
-    private const string ApiUrl = "https://ws.audioscrobbler.com/2.0/";
+    private readonly string _apiUrl = config.ScrobblerDomain;
 
-    public string ScrobbleSingleTrack(Track track, User user)
+    public void ScrobbleMultipleTracks(List<Track> tracks, User user)
     {
-        var signatureBase =
-            $"api_key{apiKey}artist[0]{track.Artist.Text}method{Method}sk{user.Key}timestamp[0]{track.Date.Uts}track[0]{track.Name}{secret}";
-        var apiSig = Cryptography.GetMd5Hash(signatureBase);
-
-
-        //All the parameters are required to be in the post body
         var parameters = new Dictionary<string, string>
         {
             { "method", "track.scrobble" },
-            { "artist[0]", track.Artist.Text },
-            { "track[0]", track.Name },
-            { "timestamp[0]", track.Date.Uts.ToString() },
-            { "api_key", apiKey },
-            { "sk", user.Key },
-            { "format", "json" },
-            { "api_sig", apiSig }
-        };
-
-        var content = new FormUrlEncodedContent(parameters);
-        using var httpClient = new HttpClient();
-
-        var response = httpClient.PostAsync(ApiUrl, content).ConfigureAwait(false).GetAwaiter().GetResult();
-        return response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-    }
-
-    public string ScrobbleMultipleTracks(List<Track> tracks, User user)
-    {
-        var signatureBase = $"api_key{apiKey}method{Method}sk{user.Key}";
-
-        var parameters = new Dictionary<string, string>
-        {
-            { "method", "track.scrobble" },
-            { "api_key", apiKey },
+            { "api_key", config.ApiKey },
             { "sk", user.Key }
         };
 
@@ -59,15 +30,16 @@ public class Scrobble(string apiKey, string secret)
                 (tracks[i].Date.Uts + 60).ToString() ?? UtcNow.ToUnixTimeSeconds().ToString());
         }
 
-        var apiSignature = GenerateApiSignature(parameters, secret);
+        var apiSignature = GenerateApiSignature(parameters, config.ApiSecret);
         parameters.Add("format", "json");
         parameters.Add("api_sig", apiSignature);
 
         var content = new FormUrlEncodedContent(parameters);
 
         using var httpClient = new HttpClient();
-        var response = httpClient.PostAsync(ApiUrl, content).ConfigureAwait(false).GetAwaiter().GetResult();
-        return response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        var response = httpClient.PostAsync(_apiUrl, content).ConfigureAwait(false).GetAwaiter().GetResult();
+        var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        if (result.Contains("error")) AnsiConsole.MarkupLine("[bold red]Error: {0}[/]", result);
     }
 
     private static string GenerateApiSignature(Dictionary<string, string> parameters, string apiSecret)

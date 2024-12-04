@@ -15,7 +15,7 @@ public class TrackChecker(string apiKey, string user)
         var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         if (result.Contains("\"error\":"))
         {
-            throw new Exception("Error while fetching recent tracks\n" + result);
+            throw new HttpRequestException("Error while fetching recent tracks\n" + result);
         }
 
         var recentTracks = RecentTracksJson.FromJson(result);
@@ -57,24 +57,24 @@ public class TrackChecker(string apiKey, string user)
                 using var client = new HttpClient();
                 var response = client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
                 var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-                var trackinfo = TrackInfoJson.FromJson(result).Track;
+                var trackInfo = TrackInfoJson.FromJson(result).Track;
 
                 task1.Increment(1);
 
-                if (NameChecks(trackinfo, track))
+                if (NameChecks(trackInfo, track))
                 {
                     continue;
                 }
 
-                if (AdvancedChecks(trackinfo, track))
+                if (AdvancedChecks(trackInfo, track))
                 {
                     continue;
                 }
 
                 track.OldAlbum = track.Album.Text;
 
-                track.Album.Title = string.IsNullOrEmpty(trackinfo.Album?.Title) ? "" : trackinfo.Album.Title;
-                track.Album.Text = string.IsNullOrEmpty(trackinfo.Album?.Title) ? "" : trackinfo.Album.Title;
+                track.Album.Title = string.IsNullOrEmpty(trackInfo.Album?.Title) ? "" : trackInfo.Album.Title;
+                track.Album.Text = string.IsNullOrEmpty(trackInfo.Album?.Title) ? "" : trackInfo.Album.Title;
 
                 wrongTracks.Add(track);
                 task1.Description = $"[green]Checking {tracks.Count} tracks (found {wrongTracks.Count:D2} tracks)[/]";
@@ -92,33 +92,33 @@ public class TrackChecker(string apiKey, string user)
     ///     This method is used to check if the track is correct by checking how manny listeners / scrobbles the album has in
     ///     comparison to the album the request returned
     /// </summary>
-    /// <param name="trackinfo">The correct track from the request to lastfm</param>
+    /// <param name="trackInfo">The correct track from the request to lastfm</param>
     /// <param name="track">The track that was scrobbled</param>
     /// <returns>Returns true if the track should be skipped</returns>
-    private bool AdvancedChecks(InfoTrack trackinfo, Track track)
+    private bool AdvancedChecks(InfoTrack trackInfo, Track track)
     {
         var albumChecker = new AlbumChecker(apiKey);
         var scrobblePlaycount = albumChecker.GetPlaycount(track.Album.Text, track.Artist.Text);
-        if (trackinfo?.Album == null || string.IsNullOrEmpty(trackinfo?.Album.Title))
+        if (trackInfo.Album == null || string.IsNullOrEmpty(trackInfo.Album.Title))
         {
-            return scrobblePlaycount / (double)trackinfo!.Playcount! > 0.1;
+            return scrobblePlaycount / (double)trackInfo.Playcount! > 0.1;
         }
 
-        var trackPlaycount = albumChecker.GetPlaycount(trackinfo.Album.Title, track.Artist.Text);
+        var trackPlaycount = albumChecker.GetPlaycount(trackInfo.Album.Title, track.Artist.Text);
         return scrobblePlaycount / (double)trackPlaycount > 0.5;
     }
 
-    private bool NameChecks(InfoTrack trackinfo, Track track)
+    private static bool NameChecks(InfoTrack trackInfo, Track track)
     {
         //Check if the track isn't supposed to have an album
-        if (string.IsNullOrEmpty(trackinfo?.Album?.Title) &&
-            string.IsNullOrEmpty(track?.Album?.Text) &&
-            string.IsNullOrEmpty(track?.Album?.Title))
+        if (string.IsNullOrEmpty(trackInfo.Album?.Title) &&
+            string.IsNullOrEmpty(track.Album?.Text) &&
+            string.IsNullOrEmpty(track.Album?.Title))
         {
             return true;
         }
 
-        if (string.IsNullOrEmpty(trackinfo?.Album?.Title))
+        if (string.IsNullOrEmpty(trackInfo.Album?.Title))
         {
             return false;
         }
@@ -132,13 +132,13 @@ public class TrackChecker(string apiKey, string user)
         //Check if the album title of the track matches the album text of the scrobbled track
         //Ignores all whitespaces
         var albumTextMatch = Regex.Match(track.Album.Text.Replace(" ", ""),
-            $"{CleanUpForRegexPattern(trackinfo.Album.Title)}.*".Replace(" ", ""), RegexOptions.IgnoreCase);
+            $"{CleanUpForRegexPattern(trackInfo.Album.Title)}.*".Replace(" ", ""), RegexOptions.IgnoreCase);
 
 
         return albumTextMatch.Success;
     }
 
-    private string CleanUpForRegexPattern(string input)
+    private static string CleanUpForRegexPattern(string input)
     {
         return input.Replace("(", "\\(").Replace(")", "\\)").Replace("[", "\\[").Replace("]", "\\]").Replace("{", "\\{")
             .Replace("}", "\\}") //Escape brackets
@@ -148,12 +148,12 @@ public class TrackChecker(string apiKey, string user)
     private static bool CheckGivenTrack(Track track)
     {
         //Check if the track has no album
-        if (track?.Album == null)
+        if (track.Album == null)
         {
             return true;
         }
 
         //Check if the album has no title or text
-        return string.IsNullOrEmpty(track?.Album.Text) && string.IsNullOrEmpty(track?.Album.Title);
+        return string.IsNullOrEmpty(track.Album.Text) && string.IsNullOrEmpty(track.Album.Title);
     }
 }

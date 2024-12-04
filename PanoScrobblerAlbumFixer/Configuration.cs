@@ -5,7 +5,10 @@ namespace PanoScrobblerAlbumFixer;
 
 public class Configuration
 {
-    [JsonProperty("apiKey")] public string ApiKey { get; set; }
-    [JsonProperty("apiSecret")] public string ApiSecret { get; set; }
-    [JsonProperty("user")] public User User { get; set; }
+    [JsonProperty("apiKey")] public required string ApiKey { get; set; }
+    [JsonProperty("apiSecret")] public required string ApiSecret { get; set; }
+
+    [JsonProperty("domain")] public required string Domain { get; set; }
+    [JsonProperty("scrobblerDomain")] public required string ScrobblerDomain { get; set; }
+    [JsonProperty("user")] public required User User { get; set; }
 }

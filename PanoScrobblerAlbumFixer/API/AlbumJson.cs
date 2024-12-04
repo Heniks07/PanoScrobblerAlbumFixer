@@ -4,7 +4,7 @@ namespace PanoScrobblerAlbumFixer.API;
 
 public class AlbumInfo
 {
-    [JsonProperty("album")] public SimpleAlbum Album { get; set; }
+    [JsonProperty("album")] public required SimpleAlbum Album { get; set; }
 }
 
 public class SimpleAlbum

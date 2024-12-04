@@ -12,7 +12,7 @@ public static partial class Program
         {
             Directory.CreateDirectory(ConfigPath);
 
-            AnsiConsole.MarkupLine("[bold red]Config file not found![/] Creating one in {0}", ConfigPath);
+            AnsiConsole.MarkupLine($"[bold red]Config file not found![/] Creating one in {ConfigPath}");
 
             // Create the config file
 
@@ -32,15 +32,20 @@ public static partial class Program
                 ? "4af271b8175b7f5e78dd462ca25bab91"
                 : input;
 
+            var user = LoginGetUser(apiKey, apiSecret, out var savePassword);
+
 
             var config = new Configuration
             {
                 ApiKey = apiKey,
-                ApiSecret = apiSecret
+                ApiSecret = apiSecret,
+                Domain = "https://www.last.fm",
+                ScrobblerDomain = "https://ws.audioscrobbler.com/2.0",
+                User = user
             };
             _config = config;
 
-            WriteConfig();
+            WriteConfig(savePassword);
         }
         else
         {
@@ -59,21 +64,15 @@ public static partial class Program
     private static void WriteConfig(bool savePassword = true, bool saveCookie = true)
     {
         var yaml = new SerializerBuilder().Build();
-        if (!savePassword)
+        if (!savePassword && _config != null)
         {
-            if (_config != null)
-            {
-                _config.User.Password = null;
-            }
+            _config.User.Password = null;
         }
 
-        if (!saveCookie)
+        if (!saveCookie && _config != null)
         {
-            if (_config != null)
-            {
-                _config.User.SessionId = null;
-                _config.User.CsrfToken = null;
-            }
+            _config.User.SessionId = null;
+            _config.User.CsrfToken = null;
         }
 
         var yamlString = yaml.Serialize(_config);
