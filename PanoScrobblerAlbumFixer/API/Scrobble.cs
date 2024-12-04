@@ -39,7 +39,7 @@ public class Scrobble(Configuration config)
         using var httpClient = new HttpClient();
         var response = httpClient.PostAsync(_apiUrl, content).ConfigureAwait(false).GetAwaiter().GetResult();
         var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        if (result.Contains("error")) AnsiConsole.MarkupLine("[bold red]Error: {0}[/]", result);
+        if (result.Contains("error")) { AnsiConsole.MarkupLine("[bold red]Error: {0}[/]", result); }
     }
 
     private static string GenerateApiSignature(Dictionary<string, string> parameters, string apiSecret)
