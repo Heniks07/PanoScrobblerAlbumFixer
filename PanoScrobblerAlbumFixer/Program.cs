@@ -1,21 +1,18 @@
 ﻿using System.Diagnostics;
-using System.Text;
 using PanoScrobblerAlbumFixer.API;
 using Spectre.Console;
-using ArgumentNullException = System.ArgumentNullException;
 
 namespace PanoScrobblerAlbumFixer;
 
 public static partial class Program
 {
     private static Configuration? _config;
-    private static readonly string BackupPath = Directory.GetCurrentDirectory() + "/Unscrobbler/backup/";
-    private static readonly string BackupFile = $"{DateTime.Now:s}.json";
 
-    public static void Main(string[] args)
+    public static void Main()
     {
         ConfigFileCheck();
-        Login(true);
+        Login();
+
         Debug.Assert(_config != null, nameof(_config) + " != null");
 
         AnsiConsole.MarkupLine("[dim]Getting wrong tracks[/]");
@@ -37,18 +34,15 @@ public static partial class Program
         }
 
 
-        var backupHandler = new BackupHandler(BackupPath, BackupFile);
-        backupHandler.WriteBackup(selectedTracks);
-
         AnsiConsole.MarkupLine("[dim]Unscrobbling selected tracks[/]");
         Unscrobble(selectedTracks);
 
         AnsiConsole.MarkupLine("[dim]Scrobbling selected tracks[/]");
 
-        ScrobbleAll(selectedTracks, backupHandler);
+        ScrobbleAll(selectedTracks);
     }
 
-    private static void ScrobbleAll(List<Track> selectedTracks, BackupHandler backupHandler)
+    private static void ScrobbleAll(List<Track> selectedTracks)
     {
         var totalTracks = selectedTracks.Count;
         var scrobbledTracks = 0;
@@ -57,14 +51,14 @@ public static partial class Program
             var scrobbleCount = selectedTracks.Count > 50 ? 50 : selectedTracks.Count;
             scrobbledTracks += scrobbleCount;
 
-            new Scrobble(_config!.ApiKey, _config.ApiSecret).ScrobbleMultipleTracks(
+            Debug.Assert(_config != null, nameof(_config) + " != null");
+            new Scrobble(_config).ScrobbleMultipleTracks(
                 selectedTracks[..scrobbleCount],
                 _config.User);
 
             foreach (var selectedTrack in selectedTracks[..scrobbleCount])
             {
                 //-1 is used to indicate that the property should not be changed
-                backupHandler.UpdateBackup(-1, selectedTrack, false, true);
                 selectedTracks.Remove(selectedTrack);
             }
 
@@ -153,7 +147,7 @@ public static partial class Program
 
                 if (_config?.User == null) return;
 
-                var unscrobble = new Unscrobble(_config.User);
+                var unscrobble = new Unscrobble(_config);
 
                 foreach (var track in selectedTracks)
                 {
@@ -165,7 +159,7 @@ public static partial class Program
 
     private static void CheckOlderThan2Weeks(List<Track> selectedTracks)
     {
-        if (!selectedTracks.Any(x => x.Date.Uts < DateTimeOffset.Now.AddDays(-14).ToUnixTimeSeconds())) return;
+        if (!selectedTracks.Exists(x => x.Date.Uts < DateTimeOffset.Now.AddDays(-14).ToUnixTimeSeconds())) { return; }
 
         AnsiConsole.MarkupLine(
             "[red]Some tracks are older than 2 weeks and can't be scrobbled at the same time![/]\n " +
@@ -219,7 +213,7 @@ public static partial class Program
         return selectedTracks;
     }
 
-    private static void Login(bool closeBrowser = false)
+    private static void Login()
     {
         if (_config?.User == null)
         {
@@ -235,16 +229,9 @@ public static partial class Program
 
             AnsiConsole.MarkupLine("[green]Welcome [bold]{0}[/]![/]", user.Name);
 
-            if (_config is null)
-            {
-                throw new ArgumentNullException(
-                    new StringBuilder().Append("Config file is empty or invalid!").ToString(),
-                    "Delete the file and restart the application");
-            }
-
             _config.User = user;
 
-            var savePassword = EnterPassword();
+            _config.User.Password = EnterPassword(out var savePassword);
 
 
             WriteConfig(savePassword);
@@ -254,18 +241,38 @@ public static partial class Program
             AnsiConsole.MarkupLine("[green]Welcome [bold]{0}[/]![/]", _config.User.Name);
             if (string.IsNullOrEmpty(_config.User.Password))
             {
-                EnterPassword();
+                _config.User.Password = EnterPassword(out _);
             }
         }
 
         if (!string.IsNullOrEmpty(_config.User.CsrfToken) && !string.IsNullOrEmpty(_config.User.SessionId)) return;
 
-        var saveCookie = GetCookieValues(closeBrowser);
+        var saveCookie = GetCookieValues();
 
         WriteConfig(saveCookie: saveCookie);
     }
 
-    private static bool GetCookieValues(bool closeBrowser)
+    private static User LoginGetUser(string apiKey, string apiSecret, out bool savePassword)
+    {
+        AnsiConsole.MarkupLine("[bold red]User not found![/] Please login to your Last.fm account");
+        var authentication =
+            new Authentication(apiKey, apiSecret);
+        authentication.GetToken();
+        AnsiConsole.MarkupLine(
+            "Open the URL [blue]{0}[/] in your browser, login with your last.fm account and authorize this application Press [bold] Enter [/] when you're done",
+            authentication.AuthUrl());
+        Console.ReadLine();
+        var user = authentication.GetSession();
+
+        AnsiConsole.MarkupLine("[green]Welcome [bold]{0}[/]![/]", user.Name);
+
+        user.Password = EnterPassword(out savePassword);
+
+
+        return user;
+    }
+
+    private static bool GetCookieValues()
     {
         AnsiConsole.MarkupLine("[red]No CSRF token or Session ID found![/] Please login to your Last.fm account");
         var selection = AnsiConsole.Prompt(
@@ -283,7 +290,7 @@ public static partial class Program
         }
         else if (_config != null)
         {
-            new CookieRetriever(_config).Login(closeBrowser);
+            new CookieRetriever(_config).Login();
         }
 
 
@@ -298,21 +305,19 @@ public static partial class Program
         return saveCookie;
     }
 
-    private static bool EnterPassword()
+    private static string EnterPassword(out bool savePassword)
     {
         var pass = AnsiConsole.Prompt(new TextPrompt<string>("Please Enter your password for Last.fm:").Secret());
 
-        var savePass = AnsiConsole.Prompt(new ConfirmationPrompt(
+        savePassword = AnsiConsole.Prompt(new ConfirmationPrompt(
                 "Do you want to save your password? [red]Warning: Your password would be stored as cleartext in the config file[/]")
             .ShowChoices()
             .Yes('y').No('n')
         );
 
-        AnsiConsole.MarkupLine(savePass ? "[green]Password saved![/]" : "[red]Password not saved![/]");
+        AnsiConsole.MarkupLine(savePassword ? "[green]Password saved![/]" : "[red]Password not saved![/]");
 
-        if (_config == null) return false;
 
-        _config.User.Password = pass;
-        return savePass;
+        return pass;
     }
 }
