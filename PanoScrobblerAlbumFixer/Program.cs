@@ -159,7 +159,7 @@ public static partial class Program
 
     private static void CheckOlderThan2Weeks(List<Track> selectedTracks)
     {
-        if (!selectedTracks.Exists(x => x.Date.Uts < DateTimeOffset.Now.AddDays(-14).ToUnixTimeSeconds())) return;
+        if (!selectedTracks.Exists(x => x.Date.Uts < DateTimeOffset.Now.AddDays(-14).ToUnixTimeSeconds())) { return; }
 
         AnsiConsole.MarkupLine(
             "[red]Some tracks are older than 2 weeks and can't be scrobbled at the same time![/]\n " +
