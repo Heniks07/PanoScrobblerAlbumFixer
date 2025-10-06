@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9"/>
-        <PackageReference Include="Selenium.WebDriver" Version="4.35.0"/>
+        <PackageReference Include="Selenium.WebDriver" Version="4.36.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="Spectre.Console" Version="0.51.1"/>
         <PackageReference Include="Spectre.Console.Cli" Version="0.51.1"/>
